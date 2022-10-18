@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        #puzzle {
+            width: 800px;
+            height: 600px;
+            box-shadow: 0 0 10px black;
+            position: relative;
+        }
+
+        #puzzle>div {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            box-shadow: 0 0 5px #333;
+        }
+
+
+        button {
+            appearance: button;
+            margin: 20px 100px;
+            background-color: #1899D6;
+            border: solid transparent;
+            border-radius: 16px;
+            border-width: 0 0 4px;
+            box-sizing: border-box;
+            color: #FFFFFF;
+            cursor: pointer;
+            display: inline-block;
+            font-family: din-round, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            line-height: 20px;
+
+            outline: none;
+            overflow: visible;
+            padding: 13px 16px;
+            text-align: center;
+            text-transform: uppercase;
+            touch-action: manipulation;
+            transform: translateZ(0);
+            transition: filter .2s;
+            user-select: none;
+            -webkit-user-select: none;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        button:after {
+            background-clip: padding-box;
+            background-color: #1CB0F6;
+            border: solid transparent;
+            border-radius: 16px;
+            border-width: 0 0 4px;
+            bottom: -4px;
+            content: "";
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: -1;
+        }
+
+        button:main,
+        button:focus {
+            user-select: auto;
+        }
+
+        button:hover:not(:disabled) {
+            filter: brightness(1.1);
+            -webkit-filter: brightness(1.1);
+        }
+
+        button:disabled {
+            cursor: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="puzzle"></div>
+    <button>show</button>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"
+        integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script>
+        $(() => {
+            const puzzle = $("#puzzle")
+            const btn = $('button')
+
+            puzzle.append('<div id="bg"></div>')
+
+
+            $('#bg').css({
+                backgroundImage: 'url("img/puzzle.jpg")',
+                width: '100%',
+                height: '100%',
+                opacity: 0
+            })
+
+            btn.click(function () {
+                if (btn.text() == 'show') {
+                    btn.text('hide')
+                    $('#bg').siblings().animate({ 'opacity': "0" }, 400)
+                    $('#bg').animate({ 'opacity': "0.5" }, 400)
+                }
+                else {
+                    btn.text('show')
+                    puzzle.children().show()
+                    $('#bg').animate({ 'opacity': "0" }, 400)
+                    $('#bg').siblings().animate({ 'opacity': "1" }, 400)
+                }
+            })
+
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 4; col++) {
+                    puzzle.append(`<div id = ${row}${col}></div>`)
+                    puzzle.children().last().css({
+                        top: rand(0, 300) + 'px',
+                        left: rand(400, $(window).width() - 100) + 'px',
+                        transform: `rotate(${rand(-45, 45)}deg)`,
+                        background: `url(img/puzzle.jpg) ${-200 * col}px ${-200 * row}px`
+                    })
+                }
+            }
+
+            puzzle.children().draggable({
+                snap: puzzle.children(),
+                start: function () {
+                    $(this).css({ transform: 'rotate(0deg)', zIndex: 100 })
+                },
+                drag: function () {
+
+                },
+                stop: function () {
+                    $(this).css({
+                        top: `${200 * Math.round($(this).position().top / 200)}px`,
+                        left: `${200 * Math.round($(this).position().left / 200)}px`,
+                        boxShadow: 'none'
+
+                    })
+
+                    let count = 0
+                    $('#bg').siblings().each(function (i, el) {
+                        if (checkWin($(el))) {
+                            count++
+                        }
+                    })
+
+                    if (count == 12) {
+                        win(puzzle)
+                    }
+                    else {
+                        console.log('not yet');
+                        console.log(count)
+                    }
+                }
+            })
+
+        })
+
+
+        function rand(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
+
+        function checkWin(obj) {
+            let id = parseInt(obj.attr('id'));
+            let top = Math.floor((id / 10)) * 200
+            let left = (id % 10) * 200
+            return (top == Math.round(obj.position().top) && left == obj.position().left);
+        }
+
+        function win(obj) {
+            obj.append('<div id="end">You Won!</div>')
+            $('#end').css({
+                boxShadow: 'none',
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'black',
+                opacity: 0,
+                textAlign: 'center',
+                verticalAlign: 'middle',
+                lineHeight: '600px',
+                color: 'white',
+                fontFamily: "\'Roboto\'",
+                fontSize: '50px',
+                zIndex: 200
+            })
+            $('#end').animate({ opacity: 0.8 }, 400)
+        }
+
+    </script>
+</body>
+
+</html>
